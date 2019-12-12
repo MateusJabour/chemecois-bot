@@ -30,7 +30,7 @@ const message = {
 
 routes.post("/", async (req, res) => {
   try {
-    console.log({ body: req });
+    console.log({ body: req.body });
     const parsedBody = JSON.parse(req.body);
     console.log({ parsedBody });
 

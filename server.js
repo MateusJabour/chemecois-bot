@@ -1,5 +1,6 @@
 const express = require("express");
 const http = require("http");
+const bodyParser = require("body-parser");
 
 const { WebClient } = require("@slack/web-api");
 const { createEventAdapter } = require("@slack/events-api");
@@ -11,9 +12,13 @@ const app = express();
 app.start = async () => {
   console.log("Starting Server...");
   const port = process.env.PORT;
+
   app.set("port", port);
-  const server = http.createServer(app);
   app.use(routes);
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({ extended: true }));
+
+  const server = http.createServer(app);
 
   app.use((req, res) => {
     res.status(404).send({
