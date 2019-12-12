@@ -33,16 +33,13 @@ router.post("/", async ({ body }, res) => {
     const parsedBody = JSON.parse(body);
     db.update("quantity", parsedBody.quantity).write();
 
-    const response = await fetch(
-      "https://hooks.slack.com/services/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",
-      {
-        method: "POST",
-        body: JSON.stringify(message),
-        headers: {
-          "Content-Type": "application/json"
-        }
+    const response = await fetch(process.env.WEBHOOK_URL, {
+      method: "POST",
+      body: JSON.stringify(message),
+      headers: {
+        "Content-Type": "application/json"
       }
-    );
+    });
 
     console.log(response);
     res.json({ success: "ihu" });
