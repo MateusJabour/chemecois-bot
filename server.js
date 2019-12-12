@@ -9,7 +9,7 @@ const app = express();
 
 app.start = async () => {
   console.log("Starting Server...");
-  const port = 8000;
+  const port = process.env.PORT;
   app.set("port", port);
   const server = http.createServer(app);
 

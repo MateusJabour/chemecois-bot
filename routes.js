@@ -3,6 +3,8 @@ const db = require("./db");
 
 const router = new express.Router();
 
+router.post("/", () => {});
+
 router.get("/slack", async (req, res) => {});
 router.post("/slack", async (req, res) => {
   try {
@@ -11,6 +13,7 @@ router.post("/slack", async (req, res) => {
     db.get("batch")
       .push({ cups: 1, claimed })
       .write();
+
     const response = {
       response_type: "in_channel",
       channel: req.body.channel_id,
