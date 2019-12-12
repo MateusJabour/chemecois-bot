@@ -1,0 +1,21 @@
+{
+  "name": "chemecois-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@slack/events-api": "^2.3.0",
+    "@slack/interactive-messages": "^1.4.0",
+    "@slack/web-api": "^5.6.0",
+    "babel-cli": "^6.26.0",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "express": "^4.17.1",
+    "lowdb": "^1.0.0"
+  }
+}
