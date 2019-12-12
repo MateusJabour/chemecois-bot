@@ -1,7 +1,7 @@
 const express = require("express");
 const db = require("./db");
 
-const router = new express.Router();
+const routes = new express.Router();
 
 const message = {
   blocks: [
@@ -28,9 +28,12 @@ const message = {
   ]
 };
 
-router.post("/", async ({ body }, res) => {
+routes.post("/", async (req, res) => {
   try {
-    const parsedBody = JSON.parse(body);
+    console.log({ body: req });
+    const parsedBody = JSON.parse(req.body);
+    console.log({ parsedBody });
+
     db.update("quantity", parsedBody.quantity).write();
 
     const response = await fetch(process.env.WEBHOOK_URL, {
@@ -41,15 +44,15 @@ router.post("/", async ({ body }, res) => {
       }
     });
 
-    console.log(response);
+    console.log({ response });
     res.json({ success: "ihu" });
-  } catch {
-    console.error("ih rapaz");
+  } catch (error) {
+    console.error({ error });
   }
 });
 
-router.get("/slack", async (req, res) => {});
-router.post("/slack", async (req, res) => {
+routes.get("/slack", async (req, res) => {});
+routes.post("/slack", async (req, res) => {
   try {
     console.log(req);
     let response;
@@ -75,4 +78,4 @@ router.post("/slack", async (req, res) => {
   } catch {}
 });
 
-export default router;
+module.exports = routes;
