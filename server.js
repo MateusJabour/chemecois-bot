@@ -25,7 +25,7 @@ app.post("/", async (req, res) => {
   try {
     db.set("quantity", req.body.quantity).write();
 
-    await fetch(webHookUrl, {
+    const response = await fetch(webHookUrl, {
       method: "POST",
       body: JSON.stringify(generateMessage(req.body.quantity)),
       headers: {
@@ -33,7 +33,7 @@ app.post("/", async (req, res) => {
       }
     });
 
-    res.json({ success: db.get("quantity") });
+    res.json({ success: db.get("quantity"), response });
   } catch (error) {
     console.error({ error });
   }
@@ -106,7 +106,6 @@ function generateMessage(quantity) {
       },
       {
         type: "section",
-        color: "#2eb886",
         fields: [
           {
             type: "mrkdwn",
