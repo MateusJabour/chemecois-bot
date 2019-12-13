@@ -5,9 +5,7 @@ const fetch = require("node-fetch");
 const app = express();
 
 const port = process.env.PORT || 3000;
-const webHookUrl =
-  process.env.WEBHOOK_URL ||
-  "https://hooks.slack.com/services/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";
+const webHookUrl = process.env.WEBHOOK_URL;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -37,22 +35,20 @@ app.post("/slack", async (req, res) => {
     const currentQuantity = db.get("quantity");
 
     if (currentQuantity > 0) {
-      db.update("quantity", currentQuantity - 1).write();
+      db.set("quantity", req.body.quantity - 1).write();
 
       response = {
-        response_type: "in_channel",
-        channel: req.body.channel_id,
-        text: "Cup claimed by..."
+        replace_original: "true",
+        text: `Cup claimed by ${req.body.payload.username}`
       };
     } else {
       response = {
-        response_type: "in_channel",
-        channel: req.body.channel_id,
+        replace_original: "true",
         text: "No more cups for you"
       };
     }
 
-    return res.json(response);
+    return res.json(JSON.stringify(response));
   } catch {}
 });
 
