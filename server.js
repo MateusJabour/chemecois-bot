@@ -1,60 +1,104 @@
 const express = require("express");
-const http = require("http");
-const bodyParser = require("body-parser");
-
-const { WebClient } = require("@slack/web-api");
-const { createEventAdapter } = require("@slack/events-api");
-const { createMessageAdapter } = require("@slack/interactive-messages");
-const routes = require("./routes");
+const db = require("./db");
+const fetch = require("node-fetch");
 
 const app = express();
 
-app.start = async () => {
-  console.log("Starting Server...");
-  const port = process.env.PORT;
+const port = process.env.PORT || 3000;
+const webHookUrl =
+  process.env.WEBHOOK_URL ||
+  "https://hooks.slack.com/services/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";
 
-  app.set("port", port);
-  app.use(routes);
-  app.use(bodyParser.json());
-  app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-  const server = http.createServer(app);
+app.post("/", async (req, res) => {
+  try {
+    db.set("quantity", req.body.quantity).write();
 
-  app.use((req, res) => {
-    res.status(404).send({
-      status: 404,
-      message: "The requested resource was not found"
-    });
-  });
+    console.log(
+      await fetch(webHookUrl, {
+        method: "POST",
+        body: JSON.stringify(generateMessage(req.body.quantity)),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
+    );
 
-  app.use((err, req, res) => {
-    console.error(err.stack);
-    const message =
-      process.env.NODE_ENV === "production"
-        ? "Something went wrong, we're looking into it..."
-        : err.stack;
-    res.status(500).send({
-      status: 500,
-      message
-    });
-  });
-
-  server.on("error", error => {
-    if (error.syscall !== "listen") throw error;
-    console.error(`Failed to start server: ${error}`);
-    process.exit(1);
-  });
-
-  server.on("listening", () => {
-    const address = server.address();
-    console.log(`Server listening ${address.address}:${address.port}`);
-  });
-
-  server.listen(port);
-};
-
-app.start().catch(err => {
-  console.error(err);
+    res.json({ success: db.get("quantity") });
+  } catch (error) {
+    console.error({ error });
+  }
 });
 
-module.exports = app;
+app.post("/slack", async (req, res) => {
+  try {
+    console.log(req);
+    let response;
+    const currentQuantity = db.get("quantity");
+
+    if (currentQuantity > 0) {
+      db.update("quantity", currentQuantity - 1).write();
+
+      response = {
+        response_type: "in_channel",
+        channel: req.body.channel_id,
+        text: "Cup claimed by..."
+      };
+    } else {
+      response = {
+        response_type: "in_channel",
+        channel: req.body.channel_id,
+        text: "No more cups for you"
+      };
+    }
+
+    return res.json(response);
+  } catch {}
+});
+
+app.listen(port);
+
+function generateMessage(quantity) {
+  return {
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "plain_text",
+          text: `@here ${quantity} ${
+            quantity > 1 ? "cups" : "cup"
+          } available. Claim your cup!`
+        }
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: "*Location:*\nMontreal, 4th floor"
+          },
+          {
+            type: "mrkdwn",
+            text: `*Number of cups:*\n${quantity}`
+          }
+        ]
+      },
+      {
+        type: "actions",
+        elements: [
+          {
+            type: "button",
+            text: {
+              type: "plain_text",
+              text: "Claim cup"
+            },
+            style: "primary",
+            value: "click_me_123"
+          }
+        ]
+      }
+    ]
+  };
+}
