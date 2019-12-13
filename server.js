@@ -5,9 +5,7 @@ const fetch = require("node-fetch");
 const app = express();
 
 const port = process.env.PORT || 3000;
-const webHookUrl =
-  process.env.WEBHOOK_URL ||
-  "https://hooks.slack.com/services/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";
+const webHookUrl = process.env.WEBHOOK_URL;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
