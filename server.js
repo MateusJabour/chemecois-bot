@@ -18,7 +18,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.post("/quantity", async (req, res) => {
-  res.json({ success: db.get("quantity") });
+  res.json({ quantity: db.get("quantity") });
 });
 
 app.post("/", async (req, res) => {
