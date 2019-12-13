@@ -59,7 +59,7 @@ app.post("/slack", async (req, res) => {
       replace_original: false,
       text: hasClaimed
         ? `Don't be greedy!`
-        : `Cup claimed by <@${payload.user.username}>`,
+        : `1 cup was claimed by <@${payload.user.username}>`,
       response_type: "in_channel"
     };
 
@@ -133,7 +133,7 @@ function generateMessage(quantity) {
                 type: "button",
                 text: {
                   type: "plain_text",
-                  text: "Claim cup"
+                  text: "Claim cup!"
                 },
                 style: "primary",
                 value: "take_chemex",
