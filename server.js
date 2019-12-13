@@ -30,34 +30,39 @@ app.post("/", async (req, res) => {
 
 app.post("/slack", async (req, res) => {
   try {
-    console.log(req);
+    const payload = JSON.parse(req.body.payload);
+    console.log({ payload });
+
     let message;
     const currentQuantity = db.get("quantity");
 
     if (currentQuantity > 0) {
-      db.set("quantity", req.body.quantity - 1).write();
+      db.set("quantity", currentQuantity - 1).write();
 
-      message = `Cup claimed by ${req.body.payload.username}`;
+      message = `Cup claimed by <@${payload.user.username}>`;
     } else {
-      message = "No more cups available";
+      message = `No more cups for <@${payload.user.username}>`;
     }
 
-    const body = {
-      replace_original: "true",
-      text: message
+    const responsePayload = {
+      replace_original: false,
+      text: message,
+      response_type: "in_channel"
     };
 
+    console.log({ responseurl: payload.response_url });
+
     console.log(
-      await fetch(req.body.payload.response_url, {
+      await fetch(payload.response_url, {
         method: "POST",
-        body: JSON.stringify(body),
+        body: JSON.stringify(responsePayload),
         headers: {
           "Content-Type": "application/json"
         }
       })
     );
 
-    res.json({ success: db.get("quantity") });
+    res.sendStatus(200);
   } catch (error) {
     console.error({ error });
   }
@@ -72,7 +77,7 @@ function generateMessage(quantity) {
         type: "section",
         text: {
           type: "plain_text",
-          text: `@here ${quantity} ${
+          text: `<@here> ${quantity} ${
             quantity > 1 ? "cups" : "cup"
           } available. Claim your cup!`
         }
