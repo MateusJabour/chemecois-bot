@@ -37,18 +37,12 @@ app.post("/slack", async (req, res) => {
     if (currentQuantity > 0) {
       db.set("quantity", req.body.quantity - 1).write();
 
-      response = {
-        replace_original: "true",
-        text: `Cup claimed by ${req.body.payload.username}`
-      };
+      response = `Cup claimed by ${req.body.payload.username}`;
     } else {
-      response = {
-        replace_original: "true",
-        text: "No more cups for you"
-      };
+      response = "No more cups available";
     }
 
-    return res.json(JSON.stringify(response));
+    return res.send(response);
   } catch {}
 });
 
