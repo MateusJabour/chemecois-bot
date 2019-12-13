@@ -31,19 +31,36 @@ app.post("/", async (req, res) => {
 app.post("/slack", async (req, res) => {
   try {
     console.log(req);
-    let response;
+    let message;
     const currentQuantity = db.get("quantity");
 
     if (currentQuantity > 0) {
       db.set("quantity", req.body.quantity - 1).write();
 
-      response = `Cup claimed by ${req.body.payload.username}`;
+      message = `Cup claimed by ${req.body.payload.username}`;
     } else {
-      response = "No more cups available";
+      message = "No more cups available";
     }
 
-    return res.send(response);
-  } catch {}
+    const body = {
+      replace_original: "true",
+      text: message
+    };
+
+    console.log(
+      await fetch(req.body.payload.response_url, {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
+    );
+
+    res.json({ success: db.get("quantity") });
+  } catch (error) {
+    console.error({ error });
+  }
 });
 
 app.listen(port);
