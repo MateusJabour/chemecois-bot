@@ -17,6 +17,8 @@ const webHookUrl = process.env.WEBHOOK_URL;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+let claimersList = [];
+
 app.post("/quantity", async (req, res) => {
   res.json({ quantity: db.get("quantity") });
 });
@@ -24,6 +26,8 @@ app.post("/quantity", async (req, res) => {
 app.post("/", async (req, res) => {
   try {
     db.set("quantity", req.body.quantity).write();
+
+    claimersList.length = 0;
 
     const response = await fetch(webHookUrl, {
       method: "POST",
@@ -42,16 +46,20 @@ app.post("/", async (req, res) => {
 app.post("/slack", async (req, res) => {
   try {
     const payload = JSON.parse(req.body.payload);
-    console.log({ payload });
 
-    const currentQuantity = db.get("quantity").value();
+    const hasClaimed = claimersList.includes(payload.user.username);
 
-    const newQuantity = currentQuantity - 1;
-    db.set("quantity", newQuantity).write();
+    if (!hasClaimed) {
+      const currentQuantity = db.get("quantity").value();
+      const newQuantity = currentQuantity - 1;
+      db.set("quantity", newQuantity).write();
+    }
 
     const responsePayload = {
       replace_original: false,
-      text: `Cup claimed by <@${payload.user.username}>`,
+      text: hasClaimed
+        ? `Don't be greedy!`
+        : `Cup claimed by <@${payload.user.username}>`,
       response_type: "in_channel"
     };
 
