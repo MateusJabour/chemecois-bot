@@ -64,15 +64,13 @@ app.post("/slack", async (req, res) => {
       response_type: !hasClaimed ? "in_channel" : "ephemeral"
     };
 
-    console.log(
-      await fetch(payload.response_url, {
-        method: "POST",
-        body: JSON.stringify(responsePayload),
-        headers: {
-          "Content-Type": "application/json"
-        }
-      })
-    );
+    await fetch(payload.response_url, {
+      method: "POST",
+      body: JSON.stringify(responsePayload),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
 
     const originalMessagePayload = {
       replace_original: true,
@@ -80,15 +78,13 @@ app.post("/slack", async (req, res) => {
       response_type: "in_channel"
     };
 
-    console.log(
-      await fetch(payload.response_url, {
-        method: "POST",
-        body: JSON.stringify(originalMessagePayload),
-        headers: {
-          "Content-Type": "application/json"
-        }
-      })
-    );
+    await fetch(payload.response_url, {
+      method: "POST",
+      body: JSON.stringify(originalMessagePayload),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
 
     res.sendStatus(200);
   } catch (error) {
