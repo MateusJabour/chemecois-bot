@@ -59,9 +59,9 @@ app.post("/slack", async (req, res) => {
     const responsePayload = {
       replace_original: false,
       text: hasClaimed
-        ? `Don't be greedy!`
+        ? `Don't be greedy! You already got one.`
         : `1 cup was claimed by <@${payload.user.username}>`,
-      response_type: "in_channel"
+      response_type: !hasClaimed ? "in_channel" : "ephemeral"
     };
 
     console.log(
