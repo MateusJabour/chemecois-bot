@@ -3,12 +3,23 @@ const db = require("./db");
 const fetch = require("node-fetch");
 
 const app = express();
+const dotenv = require("dotenv");
+
+dotenv.config();
+
+if (process.env.NODE_ENV === "development") {
+  console.log("Development mode is on");
+}
 
 const port = process.env.PORT || 3000;
 const webHookUrl = process.env.WEBHOOK_URL;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.post("/quantity", async (req, res) => {
+  res.json({ success: db.get("quantity") });
+});
 
 app.post("/", async (req, res) => {
   try {
@@ -95,6 +106,7 @@ function generateMessage(quantity) {
       },
       {
         type: "section",
+        color: "#2eb886",
         fields: [
           {
             type: "mrkdwn",
