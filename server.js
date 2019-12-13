@@ -33,29 +33,37 @@ app.post("/slack", async (req, res) => {
     const payload = JSON.parse(req.body.payload);
     console.log({ payload });
 
-    let message;
-    const currentQuantity = db.get("quantity");
+    const currentQuantity = db.get("quantity").value();
 
-    if (currentQuantity > 0) {
-      db.set("quantity", currentQuantity - 1).write();
-
-      message = `Cup claimed by <@${payload.user.username}>`;
-    } else {
-      message = `No more cups for <@${payload.user.username}>`;
-    }
+    const newQuantity = currentQuantity - 1;
+    db.set("quantity", newQuantity).write();
 
     const responsePayload = {
       replace_original: false,
-      text: message,
+      text: `Cup claimed by <@${payload.user.username}>`,
       response_type: "in_channel"
     };
-
-    console.log({ responseurl: payload.response_url });
 
     console.log(
       await fetch(payload.response_url, {
         method: "POST",
         body: JSON.stringify(responsePayload),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
+    );
+
+    const originalMessagePayload = {
+      replace_original: true,
+      blocks: JSON.stringify(generateMessage(newQuantity).blocks),
+      response_type: "in_channel"
+    };
+
+    console.log(
+      await fetch(payload.response_url, {
+        method: "POST",
+        body: JSON.stringify(originalMessagePayload),
         headers: {
           "Content-Type": "application/json"
         }
@@ -76,10 +84,13 @@ function generateMessage(quantity) {
       {
         type: "section",
         text: {
-          type: "plain_text",
-          text: `<@here> ${quantity} ${
-            quantity > 1 ? "cups" : "cup"
-          } available. Claim your cup!`
+          type: "mrkdwn",
+          text:
+            quantity > 0
+              ? `<!here> ${quantity} ${
+                  quantity > 1 ? "cups" : "cup"
+                } available. Claim your cup!`
+              : "No more cups available"
         }
       },
       {
@@ -95,21 +106,29 @@ function generateMessage(quantity) {
           }
         ]
       },
-      {
-        type: "actions",
-        elements: [
-          {
-            type: "button",
-            text: {
-              type: "plain_text",
-              text: "Claim cup"
-            },
-            style: "primary",
-            value: "take_chemex",
-            action_id: "take_chemex"
+      quantity > 0
+        ? {
+            type: "actions",
+            elements: [
+              {
+                type: "button",
+                text: {
+                  type: "plain_text",
+                  text: "Claim cup"
+                },
+                style: "primary",
+                value: "take_chemex",
+                action_id: "take_chemex"
+              }
+            ]
           }
-        ]
-      }
+        : {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: "*No more cups available*"
+            }
+          }
     ]
   };
 }
