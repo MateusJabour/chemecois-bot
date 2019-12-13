@@ -46,13 +46,14 @@ app.post("/", async (req, res) => {
 app.post("/slack", async (req, res) => {
   try {
     const payload = JSON.parse(req.body.payload);
-
     const hasClaimed = claimersList.includes(payload.user.username);
 
     if (!hasClaimed) {
       const currentQuantity = db.get("quantity").value();
       const newQuantity = currentQuantity - 1;
       db.set("quantity", newQuantity).write();
+
+      claimersList.push(payload.user.username);
     }
 
     const responsePayload = {
