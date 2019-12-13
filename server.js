@@ -19,7 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 
 let claimersList = [];
 
-app.post("/quantity", async (req, res) => {
+app.get("/quantity", async (req, res) => {
   res.json({ quantity: db.get("quantity") });
 });
 
@@ -47,10 +47,10 @@ app.post("/slack", async (req, res) => {
   try {
     const payload = JSON.parse(req.body.payload);
     const hasClaimed = claimersList.includes(payload.user.username);
+    const currentQuantity = db.get("quantity").value();
     let newQuantity;
 
     if (!hasClaimed) {
-      const currentQuantity = db.get("quantity").value();
       newQuantity = currentQuantity - 1;
       db.set("quantity", newQuantity).write();
 
@@ -75,7 +75,9 @@ app.post("/slack", async (req, res) => {
 
     const originalMessagePayload = {
       replace_original: true,
-      blocks: JSON.stringify(generateMessage(newQuantity).blocks),
+      blocks: JSON.stringify(
+        generateMessage(newQuantity || currentQuantity).blocks
+      ),
       response_type: "in_channel"
     };
 
