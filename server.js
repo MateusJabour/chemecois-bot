@@ -5,7 +5,9 @@ const fetch = require("node-fetch");
 const app = express();
 
 const port = process.env.PORT || 3000;
-const webHookUrl = process.env.WEBHOOK_URL;
+const webHookUrl =
+  process.env.WEBHOOK_URL ||
+  "https://hooks.slack.com/services/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";
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -14,15 +16,13 @@ app.post("/", async (req, res) => {
   try {
     db.set("quantity", req.body.quantity).write();
 
-    console.log(
-      await fetch(webHookUrl, {
-        method: "POST",
-        body: JSON.stringify(generateMessage(req.body.quantity)),
-        headers: {
-          "Content-Type": "application/json"
-        }
-      })
-    );
+    await fetch(webHookUrl, {
+      method: "POST",
+      body: JSON.stringify(generateMessage(req.body.quantity)),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
 
     res.json({ success: db.get("quantity") });
   } catch (error) {
@@ -93,7 +93,8 @@ function generateMessage(quantity) {
               text: "Claim cup"
             },
             style: "primary",
-            value: "click_me_123"
+            value: "take_chemex",
+            action_id: "take_chemex"
           }
         ]
       }
