@@ -76,7 +76,8 @@ app.post("/slack", async (req, res) => {
     const originalMessagePayload = {
       replace_original: true,
       blocks: JSON.stringify(
-        generateMessage(newQuantity || currentQuantity).blocks
+        generateMessage(newQuantity != null ? newQuantity : currentQuantity)
+          .blocks
       ),
       response_type: "in_channel"
     };
